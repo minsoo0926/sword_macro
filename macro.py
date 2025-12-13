@@ -86,7 +86,7 @@ def act_inference(mode='ai'):
     else:
         inference_result = ai.heuristic(fund, level)
 
-    print(f"AI Inference Result (0: 강화, 1: 판매, -1: 행동 불가): {inference_result}")
+    print(f"{mode.capitalize()} Inference Result (0: 강화, 1: 판매, -1: 행동 불가): {inference_result}")
     if inference_result == 0:
         act_enhance()
     elif inference_result == 1:
@@ -113,7 +113,7 @@ def on_press(key):
                 act_inference(mode='heuristic')
                 time.sleep(3)  # wait before next inference
         elif key == keyboard.Key.f5:
-            return False
+            raise KeyboardInterrupt("Bye!")
     except AttributeError:
         pass
 
