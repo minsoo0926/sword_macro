@@ -29,7 +29,7 @@ class SwordEnv(Env):
         self.observation_space = spaces.Box(low=low_limits, high=high_limits, shape=(3,), dtype=np.int32)
         self.max_steps = 1000
         self.current_step = 0
-        self.target_fund = 1e6
+        self.target_rate = 5
         self.minimum_fund = 10000
         self.minimum_sell_level = 5
         self.reward_coeff = 0.001
@@ -53,20 +53,24 @@ class SwordEnv(Env):
         super().reset(seed=seed)
 
         # random start level and fund for curriculum learning
-        if self.np_random.random() < 0.2:
-            start_level = int(self.np_random.integers(0, 9))
+        if self.np_random.random() < 0.3:
+            start_level = int(self.np_random.integers(1, 10))
             start_cost = level_cost[start_level]
             start_fund = (start_level + 1) * 100000
-            self.state = np.array([start_fund, start_level, start_cost], dtype=np.int32)
         else:
-            self.state = np.array([100000, 0, 10], dtype=np.int32)
+            start_level = 0
+            start_fund = 100000
+            start_cost = level_cost[start_level]
+        self.state = np.array([start_fund, start_level, start_cost], dtype=np.int32)
         self.current_step = 0
+        self.target_fund = start_fund * self.target_rate
         return self.state, {}
     
     def step(self, action):
         reward = 0.0
         done = False
         truncated = False
+        level = self.state[1]
 
         # Enhance
         if action == 0 or self.state[1] < self.minimum_sell_level: 
@@ -74,26 +78,25 @@ class SwordEnv(Env):
             if self.state[0] >= cost:
                 self.state[0] -= cost
                 # multinomial probability for success/remain/break
-                success_prob = self.level_data[self.state[1]]['성공'] / 100
-                remain_prob = self.level_data[self.state[1]]['유지'] / 100
-                break_prob = self.level_data[self.state[1]]['파괴'] / 100
+                success_prob = self.level_data[level]['성공'] / 100
+                remain_prob = self.level_data[level]['유지'] / 100
+                break_prob = self.level_data[level]['파괴'] / 100
                 outcome = self.np_random.choice(['success', 'remain', 'break'], p=[success_prob, remain_prob, break_prob])
 
                 if outcome == 'success':
                     self.state[1] += 1
                     if self.state[1] > 12:
                         sell_price = self.sell()
-                        reward += sell_price * self.reward_coeff    
+                        reward += sell_price * self.reward_coeff * level  
                 elif outcome == 'break':
                     self.state[1] = 0
             else:
                 sell_price = self.sell()
-                reward += sell_price * self.reward_coeff
+                reward += sell_price * self.reward_coeff * level
         # Sell
         elif action == 1:
             sell_price = self.sell()
-            reward = sell_price * self.reward_coeff
-
+            reward = sell_price * self.reward_coeff * level
         if action not in [0, 1]:
             raise ValueError("Invalid Action")
 
@@ -107,10 +110,10 @@ class SwordEnv(Env):
         self.current_step += 1
         self.state[2] = level_cost[self.state[1]]
 
-        if self.current_step >= self.max_steps or done:
+        if self.current_step >= self.max_steps:
             truncated = True
             sell_price = self.sell()
-            reward += sell_price * self.reward_coeff
+            reward += sell_price * self.reward_coeff * level
 
         return self.state, reward, done, truncated, {}
 
