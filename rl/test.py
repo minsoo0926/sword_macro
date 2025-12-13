@@ -1,6 +1,8 @@
 import time
 import gymnasium as gym
-from stable_baselines3 import PPO
+from sb3_contrib import MaskablePPO
+from sb3_contrib.common.wrappers import ActionMasker
+from sb3_contrib.common.maskable.utils import get_action_masks
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from env import SwordEnv 
 import matplotlib.pyplot as plt
@@ -8,13 +10,20 @@ import matplotlib.pyplot as plt
 MODEL_PATH = "./models/sword_ppo_final.zip"
 STATS_PATH = "./models/vec_normalize.pkl"
 
+def make_env(seed=None):
+    def _init():
+        env = SwordEnv()
+        env = ActionMasker(env, lambda env: env.action_masks())
+        return env
+    return _init
+
 def run_test():
-    env = DummyVecEnv([lambda: SwordEnv()])
+    env = DummyVecEnv([make_env()])
     env = VecNormalize.load(STATS_PATH, env)
     env.training = False
     env.norm_reward = False
 
-    model = PPO.load(MODEL_PATH)
+    model = MaskablePPO.load(MODEL_PATH)
 
     print("\n=== Test start (Ctrl+C to stop) ===")
     obs = env.reset()
@@ -27,10 +36,11 @@ def run_test():
 
     try:
         while True:
-            action, _states = model.predict(obs, deterministic=True)
+            action_masks = get_action_masks(env)
+            action, _states = model.predict(obs, action_masks=action_masks, deterministic=True)
             obs, rewards, dones, info = env.step(action)
-            budget_history.append(env.envs[0].state[0])
-            level_history.append(env.envs[0].state[1])
+            budget_history.append(env.envs[0].env.state[0])
+            level_history.append(env.envs[0].env.state[1])
 
             reward = rewards[0]
             reward_history.append(reward)

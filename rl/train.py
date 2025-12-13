@@ -1,7 +1,8 @@
 import os
 import gymnasium as gym
 import numpy as np
-from stable_baselines3 import PPO
+from sb3_contrib import MaskablePPO
+from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.monitor import Monitor
@@ -24,6 +25,7 @@ check_env(env)
 def make_env(rank, seed=0):
     def _init():
         env = SwordEnv()
+        env = ActionMasker(env, lambda env: env.action_masks())
         env = Monitor(env, LOG_DIR)
         env.reset(seed=seed+rank)
         return env
@@ -50,10 +52,10 @@ def main():
     # create model
     if os.path.exists(MODEL_PATH):
         print("Loading existing model...")
-        model = PPO.load(MODEL_PATH, env=env)
+        model = MaskablePPO.load(MODEL_PATH, env=env)
     else:
         print("Creating new model...")
-        model = PPO(
+        model = MaskablePPO(
             "MlpPolicy", 
             env, 
             verbose=1, 
