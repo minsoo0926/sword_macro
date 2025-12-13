@@ -7,25 +7,25 @@ controller = keyboard.Controller()
 
 
 def act_enhance():
-    print("강화 매크로 실행")
+    # print("강화 매크로 실행")
     
     controller.press('/')
-    time.sleep(0.5)
+    time.sleep(0.2)
     controller.press('ㄱ')
-    time.sleep(0.5)
+    time.sleep(0.2)
     controller.press(keyboard.Key.enter)
-    time.sleep(0.5)
+    time.sleep(0.2)
     controller.press(keyboard.Key.enter)
 
 def act_sell():
-    print("판매 매크로 실행")
+    # print("판매 매크로 실행")
     
     controller.press('/')
-    time.sleep(0.5)
+    time.sleep(0.2)
     controller.press('ㅍ')
-    time.sleep(0.5)
+    time.sleep(0.2)
     controller.press(keyboard.Key.enter)
-    time.sleep(0.5)
+    time.sleep(0.2)
     controller.press(keyboard.Key.enter)
 
 def on_press(key):
