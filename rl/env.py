@@ -51,7 +51,15 @@ class SwordEnv(Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.state = np.array([100000, 0, 10], dtype=np.int32)
+
+        # random start level and fund for curriculum learning
+        if self.np_random.random() < 0.2:
+            start_level = int(self.np_random.integers(0, 9))
+            start_cost = level_cost[start_level]
+            start_fund = (start_level + 1) * 100000
+            self.state = np.array([start_fund, start_level, start_cost], dtype=np.int32)
+        else:
+            self.state = np.array([100000, 0, 10], dtype=np.int32)
         self.current_step = 0
         return self.state, {}
     
@@ -103,7 +111,7 @@ class SwordEnv(Env):
             truncated = True
             sell_price = self.sell()
             reward += sell_price * self.reward_coeff
-        
+
         return self.state, reward, done, truncated, {}
 
     def render(self):

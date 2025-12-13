@@ -6,8 +6,9 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.utils import set_random_seed
 from env import SwordEnv
-import rl.test
+import test
 
 LOG_DIR = "./logs/"
 MODEL_DIR = "./models/"
@@ -17,15 +18,21 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 MODEL_PATH = "./models/sword_ppo_final.zip"
 STATS_PATH = "./models/vec_normalize.pkl"
 
-def make_env():
-    env = SwordEnv()
-    check_env(env)
-    env = Monitor(env, LOG_DIR)
-    return env
+env = SwordEnv()
+check_env(env)
+
+def make_env(rank, seed=0):
+    def _init():
+        env = SwordEnv()
+        env = Monitor(env, LOG_DIR)
+        env.reset(seed=seed+rank)
+        return env
+    set_random_seed(seed)
+    return _init
 
 def main():
     # create environment
-    env = DummyVecEnv([make_env])
+    env = DummyVecEnv([make_env(i) for i in range(4)])
     if os.path.exists(STATS_PATH):
         env = VecNormalize.load(STATS_PATH, env)
         env.training = True
@@ -74,4 +81,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    rl.test.test()
+    test.run_test()

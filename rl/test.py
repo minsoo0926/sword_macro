@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 MODEL_PATH = "./models/sword_ppo_final.zip"
 STATS_PATH = "./models/vec_normalize.pkl"
 
-def test():
+def run_test():
     env = DummyVecEnv([lambda: SwordEnv()])
     env = VecNormalize.load(STATS_PATH, env)
     env.training = False
@@ -81,4 +81,4 @@ def test():
         print("\nTest stopped by user.")
 
 if __name__ == "__main__":
-    test()
+    run_test()
