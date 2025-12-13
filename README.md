@@ -5,6 +5,12 @@
 - RL environment to build agent
 - Macro support
 
+### Quick start
+```
+pip install -r requirement.txt
+make macro
+```
+
 ### RL support
 - Used PPO algorithm using SB3
 - Makefile script for convenient training
