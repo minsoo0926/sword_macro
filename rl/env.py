@@ -115,7 +115,14 @@ class SwordEnv(Env):
             reward -= 1000  # penalty for running out of fund
             done = True
 
-        self.state[2] = level_cost[self.state[1]]
+        next_cost = level_cost[self.state[1]]
+        can_enhance = self.state[0] >= next_cost
+        can_sell = self.state[1] >= self.minimum_sell_level
+        if not can_enhance and not can_sell:
+            done = True
+            reward -= 1000 # penalty for no possible actions
+
+        self.state[2] = next_cost
 
         if not done and self.current_step >= self.max_steps:
             truncated = True

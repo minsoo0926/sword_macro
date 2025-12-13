@@ -70,14 +70,14 @@ def run_test():
         plt.legend()
 
         plt.subplot(1, 3, 2)
-        plt.plot(level_history[:-1], label='Sword Level (+)', color='orange')
+        plt.plot(level_history, label='Sword Level (+)', color='orange')
         plt.xlabel('Steps')
         plt.ylabel('Sword Level (+)')
         plt.title('Sword Level Over Time')
         plt.legend()
 
         plt.subplot(1, 3, 3)
-        plt.plot(reward_history[:-1], label='Reward', color='green')
+        plt.plot(reward_history, label='Reward', color='green')
         plt.xlabel('Steps')
         plt.ylabel('Reward')
         plt.title('Reward Over Time')

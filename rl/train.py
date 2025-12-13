@@ -32,7 +32,7 @@ def make_env(rank, seed=0):
     set_random_seed(seed)
     return _init
 
-def main():
+def main(timesteps=1000000):
     # create environment
     env = DummyVecEnv([make_env(i) for i in range(4)])
     if os.path.exists(STATS_PATH):
@@ -73,7 +73,7 @@ def main():
     )
 
     print("Start training...")
-    model.learn(total_timesteps=1000000, reset_num_timesteps=not loaded, callback=checkpoint_callback)
+    model.learn(total_timesteps=timesteps, reset_num_timesteps=not loaded, callback=checkpoint_callback)
 
     # save model
     model.save(f"{MODEL_DIR}/sword_ppo_final")
@@ -82,5 +82,9 @@ def main():
     print("Training completed and saved successfully!")
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', type=int, default=1000000, help='Total training timesteps')
+    args = parser.parse_args()
+    main(timesteps=args.t)
     test.run_test()
