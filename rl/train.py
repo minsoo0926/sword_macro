@@ -27,8 +27,9 @@ def main():
     env = DummyVecEnv([make_env])
     if os.path.exists(STATS_PATH):
         env = VecNormalize.load(STATS_PATH, env)
-        env_training = True
+        env.training = True
         env.norm_reward = True
+        loaded = True
     else:
         env = VecNormalize(
             env, 
@@ -36,6 +37,7 @@ def main():
             norm_reward=True, 
             clip_obs=10.
         )
+        loaded = False
 
     # create model
     if os.path.exists(MODEL_PATH):
@@ -61,7 +63,7 @@ def main():
     )
 
     print("Start training...")
-    model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=checkpoint_callback)
+    model.learn(total_timesteps=1000000, reset_num_timesteps=not loaded, callback=checkpoint_callback)
 
     # save model
     model.save(f"{MODEL_DIR}/sword_ppo_final")
