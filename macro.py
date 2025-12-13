@@ -2,6 +2,7 @@ from pynput import keyboard, mouse
 import time
 import pyperclip
 import re
+import threading
 from rl.inference import SwordAI
 
 is_running = True
@@ -9,6 +10,23 @@ pressed_keys = set()
 controller = keyboard.Controller()
 mouse_controller = mouse.Controller()
 ai = SwordAI()
+
+running_mode = None  # 'ai' or 'heuristic' or None
+
+def worker_loop():
+    global running_mode
+    while True:
+        if running_mode == 'ai':
+            act_inference('ai')
+            time.sleep(3)  # wait before next inference
+        elif running_mode == 'heuristic':
+            act_inference('heuristic')
+            time.sleep(3)
+        else:
+            time.sleep(0.1)
+
+t = threading.Thread(target=worker_loop, daemon=True)
+t.start()
 
 def _click_mouse(x, y):
     mouse_controller.position = (x, y)
@@ -95,6 +113,7 @@ def act_inference(mode='ai'):
         print("No valid action can be taken.")
 
 def on_press(key):
+    global running_mode
     try:
         if key in pressed_keys:
             return
@@ -105,15 +124,13 @@ def on_press(key):
         elif key == keyboard.Key.f2:
             act_sell()
         elif key == keyboard.Key.f3:
-            while True:
-                act_inference('ai')
-                time.sleep(3)  # wait before next inference
+            running_mode = 'ai'
         elif key == keyboard.Key.f4:
-            while True:
-                act_inference(mode='heuristic')
-                time.sleep(3)  # wait before next inference
+            running_mode = 'heuristic'
         elif key == keyboard.Key.f5:
-            raise KeyboardInterrupt("Bye!")
+            running_mode = None
+            print("Bye!")
+            return False
     except AttributeError:
         pass
 
