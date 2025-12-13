@@ -13,6 +13,9 @@ MODEL_DIR = "./models/"
 os.makedirs(LOG_DIR, exist_ok=True)
 os.makedirs(MODEL_DIR, exist_ok=True)
 
+MODEL_PATH = "./models/sword_ppo_final.zip"
+STATS_PATH = "./models/vec_normalize.pkl"
+
 def make_env():
     env = SwordEnv()
     check_env(env)
@@ -22,33 +25,43 @@ def make_env():
 def main():
     # create environment
     env = DummyVecEnv([make_env])
-    env = VecNormalize(
-        env, 
-        norm_obs=True, 
-        norm_reward=True, 
-        clip_obs=10.
-    )
+    if os.path.exists(STATS_PATH):
+        env = VecNormalize.load(STATS_PATH, env)
+        env_training = True
+        env.norm_reward = True
+    else:
+        env = VecNormalize(
+            env, 
+            norm_obs=True, 
+            norm_reward=True, 
+            clip_obs=10.
+        )
 
     # create model
-    model = PPO(
-        "MlpPolicy", 
-        env, 
-        verbose=1, 
-        tensorboard_log=LOG_DIR,
-        learning_rate=0.0003,
-        n_steps=2048,
-        batch_size=64
-    )
+    if os.path.exists(MODEL_PATH):
+        print("Loading existing model...")
+        model = PPO.load(MODEL_PATH, env=env)
+    else:
+        print("Creating new model...")
+        model = PPO(
+            "MlpPolicy", 
+            env, 
+            verbose=1, 
+            tensorboard_log=LOG_DIR,
+            learning_rate=0.0003,
+            n_steps=2048,
+            batch_size=64
+        )
 
     # checkpoint save callback
     checkpoint_callback = CheckpointCallback(
-        save_freq=10000, 
+        save_freq=100000, 
         save_path=MODEL_DIR, 
         name_prefix="sword_ppo"
     )
 
     print("Start training...")
-    model.learn(total_timesteps=100000, callback=checkpoint_callback)
+    model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=checkpoint_callback)
 
     # save model
     model.save(f"{MODEL_DIR}/sword_ppo_final")
