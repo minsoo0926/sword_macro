@@ -39,7 +39,7 @@ def main():
 
             if step_count % 100 == 0:
                 print(f"Step: {step_count} | Action: {action[0]} | Reward: {reward:.2f}")
-                env.render() 
+                env.render(mode='human') 
             
             if dones[0]:
                 print(f"--- Episode finished,Total reward: {total_reward:.2f} ---")

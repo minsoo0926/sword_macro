@@ -30,42 +30,41 @@ class SwordEnv(Env):
         self.max_steps = 1000
         self.current_step = 0
         self.target_fund = 1e7
-        self.minimum_fund = 1000
+        self.minimum_fund = 10000
         self.minimum_sell_level = 5
         self.level_data = level_summary_dict
 
     def get_sell_price(self, level):
         sell_avg = self.level_data[level]['AVG_sell']
         sell_std = self.level_data[level]['STD_sell']
-        sell_price = max(0, int(np.random.normal(sell_avg, sell_std)))
+        sell_price = max(0, int(self.np_random.normal(sell_avg, sell_std)))
         return sell_price
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        np.random.seed(seed)
         self.state = np.array([100000, 0], dtype=np.int32)
         self.current_step = 0
         return self.state, {}
     
     def step(self, action):
-        reward = 0
+        reward = 0.0
         done = False
         truncated = False
 
         # Enhance
-        if action == 0: 
+        if action == 0 or self.state[1] < self.minimum_sell_level: 
             cost = level_cost[self.state[1]]
             if self.state[0] >= cost:
                 self.state[0] -= cost
-                reward = -cost / 1000
+                # reward = -cost / 1000
                 # multinomial probability for success/remain/break
                 success_prob = self.level_data[self.state[1]]['성공'] / 100
                 remain_prob = self.level_data[self.state[1]]['유지'] / 100
                 break_prob = self.level_data[self.state[1]]['파괴'] / 100
-                outcome = np.random.choice(['success', 'remain', 'break'], p=[success_prob, remain_prob, break_prob])
+                outcome = self.np_random.choice(['success', 'remain', 'break'], p=[success_prob, remain_prob, break_prob])
                 if outcome == 'success':
                     self.state[1] += 1
-                    reward = self.state[1] # reward for success
+                    reward += self.state[1] # reward for success
                     if self.state[1] > 12:
                         sell_price = self.get_sell_price(12)
                         self.state[0] += sell_price
@@ -74,19 +73,19 @@ class SwordEnv(Env):
 
                 elif outcome == 'break':
                     self.state[1] = 0
-                    reward *= 10  # increased penalty for break
+                    # reward -= 1  # penalty for break
                     if self.state[0] < self.minimum_fund:
-                        reward -= 100  # additional penalty for low fund after break
+                        reward -= 10000  # additional penalty for low fund after break
                         done = True
             else:
                 # give penalty for invalid action
-                reward = -10
+                reward = -100
                 
         # Sell
         elif action == 1:
             if self.state[1] < self.minimum_sell_level:
                 # give penalty for invalid action
-                reward = -10
+                reward = -100
             else:
                 sell_price = self.get_sell_price(self.state[1])
                 self.state[0] += sell_price
@@ -100,7 +99,10 @@ class SwordEnv(Env):
             reward += 1000  # bonus for reaching target fund
             done = True
         self.current_step += 1
-        truncated = self.current_step >= self.max_steps
+
+        if self.current_step >= self.max_steps:
+            truncated = True
+            reward += (self.state[0] - 100000) / 1000  # Reward for remaining fund
         
         return self.state, reward, done, truncated, {}
 
