@@ -30,7 +30,14 @@ class SwordEnv(Env):
         self.max_steps = 1000
         self.current_step = 0
         self.target_fund = 1e7
+        self.minimum_fund = 1000
         self.level_data = level_summary_dict
+
+    def get_sell_price(self, level):
+        sell_avg = self.level_data[level]['AVG_sell']
+        sell_std = self.level_data[level]['STD_sell']
+        sell_price = max(0, int(np.random.normal(sell_avg, sell_std)))
+        return sell_price
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -43,6 +50,7 @@ class SwordEnv(Env):
         # Enhance
         if action == 0: 
             cost = level_cost[self.state[1]]
+            done = False
             if self.state[0] >= cost:
                 self.state[0] -= cost
                 reward = -cost
@@ -54,12 +62,21 @@ class SwordEnv(Env):
                 if outcome == 'success':
                     self.state[1] += 1
                     reward += 10
+                    if self.state[1] > 12:
+                        sell_price = self.get_sell_price(12)
+                        self.state[0] += sell_price
+                        reward += sell_price / 1000
+                        self.state[1] = 0
+
                 elif outcome == 'break':
                     self.state[1] = 0
                     reward -= 100
+                    if self.state[0] < self.minimum_fund:
+                        reward -= 900  # additional penalty for low fund after break
+                        done = True
 
                 self.current_step += 1
-                done = bool(self.state[0] >= self.target_fund)
+                done = bool(self.state[0] >= self.target_fund) or done
                 truncated = self.current_step >= self.max_steps
             else:
                 # give penalty for invalid action
@@ -68,10 +85,14 @@ class SwordEnv(Env):
                 reward = -10
                 
         # Sell
-        if action == 1 or self.state[1] >= 12:
-            sell_avg = self.level_data[self.state[1]]['AVG_sell']
-            sell_std = self.level_data[self.state[1]]['STD_sell']
-            sell_price = max(0, int(np.random.normal(sell_avg, sell_std)))
+        elif action == 1:
+            if self.state[1] == 0:
+                # give penalty for invalid action
+                done = False
+                truncated = False
+                reward = -10
+                return self.state, reward, done, truncated, {}
+            sell_price = self.get_sell_price(self.state[1])
             self.state[0] += sell_price
             self.state[1] = 0
 
