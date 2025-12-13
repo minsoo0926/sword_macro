@@ -1,4 +1,4 @@
-from pynput import keyboard
+from pynput import keyboard, mouse
 import time
 import pyperclip
 import re
@@ -7,9 +7,17 @@ from rl.inference import SwordAI
 is_running = True
 pressed_keys = set()
 controller = keyboard.Controller()
+mouse_controller = mouse.Controller()
 ai = SwordAI()
 
+def _click_mouse(x, y):
+    mouse_controller.position = (x, y)
+    time.sleep(0.1)
+    mouse_controller.click(mouse.Button.left, 1)
+    time.sleep(0.1)
+
 def _copy_message():
+    _click_mouse(200, 550)
     controller.press(keyboard.Key.cmd)
     controller.press('a')
     time.sleep(0.1)
@@ -20,19 +28,22 @@ def _copy_message():
     controller.release('c')
     controller.release(keyboard.Key.cmd)
     time.sleep(0.1)
+    _click_mouse(200, 900)
     # controller.press(keyboard.Key.esc)
     # controller.release(keyboard.Key.esc)
     # time.sleep(0.1)
     text = pyperclip.paste()
-    text = _parse_message(text)
-    print(text)
+    # text = _parse_message(text)
+    # print(text)
     return text
 
 def _parse_message(message):
     message = message.split('@')[-1]
     enhance_pattern = re.findall(r'강화 (\w+)', message)
     result = enhance_pattern[0] if enhance_pattern else None
+    print("="*30)
     print(message)
+    print("="*30)
     level_pattern = re.findall(r'\+(\d+)', message)
     level = int(level_pattern[-1]) if level_pattern \
         else 0 if result == '파괴' else None
@@ -63,13 +74,25 @@ def act_sell():
     time.sleep(0.2)
     controller.press(keyboard.Key.enter)
 
-def act_inference():
-    fund, level = _copy_message()
+def act_inference(mode='ai'):
+    text = _copy_message()
+    fund, level = _parse_message(text)
+    print(f"Current Fund: {fund}, Level: {level}")
     if fund is None or level is None:
         print("Unable to parse fund or level from message.")
         return
-    inference_result = ai.predict(fund, level)
+    if mode == 'ai':
+        inference_result = ai.predict(fund, level)
+    else:
+        inference_result = ai.heuristic(fund, level)
+
     print(f"AI Inference Result (0: 강화, 1: 판매, -1: 행동 불가): {inference_result}")
+    if inference_result == 0:
+        act_enhance()
+    elif inference_result == 1:
+        act_sell()
+    else:
+        print("No valid action can be taken.")
 
 def on_press(key):
     try:
@@ -82,8 +105,14 @@ def on_press(key):
         elif key == keyboard.Key.f2:
             act_sell()
         elif key == keyboard.Key.f3:
-            return act_inference()
+            while True:
+                act_inference('ai')
+                time.sleep(3)  # wait before next inference
         elif key == keyboard.Key.f4:
+            while True:
+                act_inference(mode='heuristic')
+                time.sleep(3)  # wait before next inference
+        elif key == keyboard.Key.f5:
             return False
     except AttributeError:
         pass
@@ -95,6 +124,6 @@ def on_release(key):
         pass
 
 if __name__ == "__main__":
-    print("매크로 실행 중... (F1: 강화, F2: 판매, F3: AI 추론, F4: 종료)")
+    print("매크로 실행 중... (F1: 강화, F2: 판매, F3: AI 추론 toggle, F4: heuristic toggle, F5: 종료)")
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
