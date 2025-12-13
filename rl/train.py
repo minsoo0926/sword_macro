@@ -8,16 +8,12 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.utils import set_random_seed
-from env import SwordEnv
-import test
+from rl.env import SwordEnv
+import rl.test
+from rl.config import *
 
-LOG_DIR = "./logs/"
-MODEL_DIR = "./models/"
 os.makedirs(LOG_DIR, exist_ok=True)
 os.makedirs(MODEL_DIR, exist_ok=True)
-
-MODEL_PATH = "./models/sword_ppo_final.zip"
-STATS_PATH = "./models/vec_normalize.pkl"
 
 env = SwordEnv()
 check_env(env)
@@ -87,4 +83,4 @@ if __name__ == "__main__":
     parser.add_argument('-t', type=int, default=1000000, help='Total training timesteps')
     args = parser.parse_args()
     main(timesteps=args.t)
-    test.run_test()
+    rl.test.run_test()

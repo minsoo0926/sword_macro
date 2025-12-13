@@ -4,11 +4,9 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 from sb3_contrib.common.maskable.utils import get_action_masks
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
-from env import SwordEnv 
 import matplotlib.pyplot as plt
-
-MODEL_PATH = "./models/sword_ppo_final.zip"
-STATS_PATH = "./models/vec_normalize.pkl"
+from rl.config import *
+from rl.env import SwordEnv 
 
 def make_env(seed=None):
     def _init():

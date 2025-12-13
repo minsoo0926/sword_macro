@@ -1,8 +1,8 @@
 train:
-	python rl/train.py
+	python -m rl.train
 
 long-train:
-	python rl/train.py -t 5000000
+	python -m rl.train -t 5000000
 
 test:
-	python rl/test.py
+	python -m rl.test
