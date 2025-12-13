@@ -1,2 +1,4 @@
 pyautogui
 pynput
+pandas
+stable-baselines3
