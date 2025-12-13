@@ -9,7 +9,7 @@ from rl.env import SwordEnv, level_cost
 from rl.config import *
 
 class SwordAI:
-    def __init__(self, model_path, stats_path):
+    def __init__(self, model_path=MODEL_PATH, stats_path=STATS_PATH):
         print("Loading AI Model & Stats...")
         self.dummy_env = DummyVecEnv([lambda: SwordEnv()])
         

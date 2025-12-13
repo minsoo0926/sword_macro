@@ -6,3 +6,6 @@ long-train:
 
 test:
 	python -m rl.test
+
+macro:
+	python -m macro
