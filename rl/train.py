@@ -7,6 +7,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import CheckpointCallback
 from env import SwordEnv
+import rl.test
 
 LOG_DIR = "./logs/"
 MODEL_DIR = "./models/"
@@ -73,3 +74,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    rl.test.test()

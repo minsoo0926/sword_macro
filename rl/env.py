@@ -24,12 +24,12 @@ class SwordEnv(Env):
     def __init__(self) -> None:
         super().__init__()
         self.action_space = spaces.Discrete(2)
-        low_limits = np.array([0, 0], dtype=np.int32)
-        high_limits = np.array([1e8, 20], dtype=np.int32)
-        self.observation_space = spaces.Box(low=low_limits, high=high_limits, shape=(2,), dtype=np.int32)
+        low_limits = np.array([0, 0, 0], dtype=np.int32) # fund, sword level, cost to enhance
+        high_limits = np.array([1e8, 20, 1e6], dtype=np.int32)
+        self.observation_space = spaces.Box(low=low_limits, high=high_limits, shape=(3,), dtype=np.int32)
         self.max_steps = 1000
         self.current_step = 0
-        self.target_fund = 1e7
+        self.target_fund = 1e6
         self.minimum_fund = 10000
         self.minimum_sell_level = 5
         self.reward_coeff = 0.001
@@ -51,7 +51,7 @@ class SwordEnv(Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.state = np.array([100000, 0], dtype=np.int32)
+        self.state = np.array([100000, 0, 10], dtype=np.int32)
         self.current_step = 0
         return self.state, {}
     
@@ -97,11 +97,12 @@ class SwordEnv(Env):
             done = True
 
         self.current_step += 1
+        self.state[2] = level_cost[self.state[1]]
 
         if self.current_step >= self.max_steps or done:
             truncated = True
             sell_price = self.sell()
-            reward += (self.state[0] - 100000) * self.reward_coeff  # Reward for remaining fund
+            reward += sell_price * self.reward_coeff
         
         return self.state, reward, done, truncated, {}
 
