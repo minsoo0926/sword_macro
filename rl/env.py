@@ -42,6 +42,8 @@ class SwordEnv(Env):
         return sell_price
     
     def sell(self):
+        if self.state[1] == 0:
+            return 0
         sell_price = self.get_sell_price(self.state[1])
         self.state[0] += sell_price
         self.state[1] = 0
@@ -68,23 +70,17 @@ class SwordEnv(Env):
                 remain_prob = self.level_data[self.state[1]]['유지'] / 100
                 break_prob = self.level_data[self.state[1]]['파괴'] / 100
                 outcome = self.np_random.choice(['success', 'remain', 'break'], p=[success_prob, remain_prob, break_prob])
+
                 if outcome == 'success':
                     self.state[1] += 1
-                    # reward += 5 * self.state[1] # reward for success
                     if self.state[1] > 12:
                         sell_price = self.sell()
-                        reward += sell_price * self.reward_coeff
-                        
+                        reward += sell_price * self.reward_coeff    
                 elif outcome == 'break':
                     self.state[1] = 0
-                    # reward -= 1  # penalty for break
-                    if self.state[0] < self.minimum_fund:
-                        reward -= 100  # additional penalty for low fund after break
-                        done = True
             else:
                 sell_price = self.sell()
                 reward += sell_price * self.reward_coeff
-                
         # Sell
         elif action == 1:
             sell_price = self.sell()
@@ -96,9 +92,13 @@ class SwordEnv(Env):
         if self.state[0] >= self.target_fund:
             reward += 1000  # bonus for reaching target fund
             done = True
+        elif self.state[0] < self.minimum_fund and self.state[1] == 0:
+            reward -= 1000  # penalty for running out of fund
+            done = True
+
         self.current_step += 1
 
-        if self.current_step >= self.max_steps:
+        if self.current_step >= self.max_steps or done:
             truncated = True
             sell_price = self.sell()
             reward += (self.state[0] - 100000) * self.reward_coeff  # Reward for remaining fund

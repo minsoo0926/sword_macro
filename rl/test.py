@@ -29,11 +29,11 @@ def main():
         while True:
             action, _states = model.predict(obs, deterministic=True)
             obs, rewards, dones, info = env.step(action)
-            budget_history.append(env.envs[0].state[0]) if step_count % 10 == 0 else None
-            level_history.append(env.envs[0].state[1]) if step_count % 10 == 0 else None
+            budget_history.append(env.envs[0].state[0])
+            level_history.append(env.envs[0].state[1])
 
             reward = rewards[0]
-            reward_history.append(reward) if step_count % 10 == 0 else None
+            reward_history.append(reward)
             total_reward += reward
             step_count += 1
 
