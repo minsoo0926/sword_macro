@@ -53,7 +53,7 @@ class SwordEnv(Env):
             done = False
             if self.state[0] >= cost:
                 self.state[0] -= cost
-                reward = -cost
+                reward = -cost / 1000
                 # multinomial probability for success/remain/break
                 success_prob = self.level_data[self.state[1]]['성공'] / 100
                 remain_prob = self.level_data[self.state[1]]['유지'] / 100
@@ -61,7 +61,7 @@ class SwordEnv(Env):
                 outcome = np.random.choice(['success', 'remain', 'break'], p=[success_prob, remain_prob, break_prob])
                 if outcome == 'success':
                     self.state[1] += 1
-                    reward += 10
+                    reward = 0 # ignore cost penalty on success
                     if self.state[1] > 12:
                         sell_price = self.get_sell_price(12)
                         self.state[0] += sell_price
@@ -70,9 +70,9 @@ class SwordEnv(Env):
 
                 elif outcome == 'break':
                     self.state[1] = 0
-                    reward -= 100
+                    reward -= 10
                     if self.state[0] < self.minimum_fund:
-                        reward -= 900  # additional penalty for low fund after break
+                        reward -= 90  # additional penalty for low fund after break
                         done = True
 
                 self.current_step += 1
