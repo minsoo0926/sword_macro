@@ -25,6 +25,7 @@ def run_test():
 
     print("\n=== Test start (Ctrl+C to stop) ===")
     obs = env.reset()
+    print("Initial Funds:", env.envs[0].env.state[0])
     
     total_reward = 0
     step_count = 0

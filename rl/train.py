@@ -28,9 +28,9 @@ def make_env(rank, seed=0):
     set_random_seed(seed)
     return _init
 
-def main(timesteps=1000000):
+def main(timesteps=TRAINING_TIMESTEPS):
     # create environment
-    env = DummyVecEnv([make_env(i) for i in range(4)])
+    env = DummyVecEnv([make_env(i) for i in range(N_ENVS)])
     if os.path.exists(STATS_PATH):
         env = VecNormalize.load(STATS_PATH, env)
         env.training = True
@@ -56,9 +56,9 @@ def main(timesteps=1000000):
             env, 
             verbose=1, 
             tensorboard_log=LOG_DIR,
-            learning_rate=0.0003,
-            n_steps=2048,
-            batch_size=64
+            learning_rate=LEARNING_RATE,
+            n_steps=N_STEPS,
+            batch_size=BATCH_SIZE
         )
 
     # checkpoint save callback
@@ -80,7 +80,7 @@ def main(timesteps=1000000):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', type=int, default=1000000, help='Total training timesteps')
+    parser.add_argument('-t', type=int, default=TRAINING_TIMESTEPS, help='Total training timesteps')
     args = parser.parse_args()
     main(timesteps=args.t)
     rl.test.run_test()

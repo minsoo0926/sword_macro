@@ -9,3 +9,6 @@ test:
 
 macro:
 	python -m macro
+
+tensorboard:
+	tensorboard --logdir ./logs/

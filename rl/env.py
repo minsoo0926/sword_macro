@@ -1,6 +1,7 @@
 from gymnasium import Env, spaces
 import numpy as np
 import pandas as pd
+from rl.config import *
 
 level_summary = pd.read_csv('./level_summary.csv')
 level_summary_dict = level_summary.to_dict('index')
@@ -27,12 +28,12 @@ class SwordEnv(Env):
         low_limits = np.array([0, 0, 0], dtype=np.int32) # fund, sword level, cost to enhance
         high_limits = np.array([1e8, 20, 1e6], dtype=np.int32)
         self.observation_space = spaces.Box(low=low_limits, high=high_limits, shape=(3,), dtype=np.int32)
-        self.max_steps = 1000
+        self.max_steps = MAX_STEPS
         self.current_step = 0
-        self.target_rate = 5
-        self.minimum_fund = 10000
-        self.minimum_sell_level = 5
-        self.reward_coeff = 0.001
+        self.target_rate = TARGET_RATE
+        self.minimum_fund = MINIMUM_FUND
+        self.minimum_sell_level = MINIMUM_SELL_LEVEL
+        self.reward_coeff = REWARD_COEFF
         self.level_data = level_summary_dict
 
     def action_masks(self):

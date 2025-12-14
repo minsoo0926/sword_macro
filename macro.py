@@ -4,6 +4,7 @@ import pyperclip
 import re
 import threading
 from rl.inference import SwordAI
+from rl.config import CHAT_OUTPUT_COORD, CHAT_INPUT_COORD
 
 is_running = True
 pressed_keys = set()
@@ -35,7 +36,7 @@ def _click_mouse(x, y):
     time.sleep(0.1)
 
 def _copy_message():
-    _click_mouse(200, 550)
+    _click_mouse(*CHAT_OUTPUT_COORD)
     controller.press(keyboard.Key.cmd)
     controller.press('a')
     time.sleep(0.1)
@@ -46,7 +47,7 @@ def _copy_message():
     controller.release('c')
     controller.release(keyboard.Key.cmd)
     time.sleep(0.1)
-    _click_mouse(200, 900)
+    _click_mouse(*CHAT_INPUT_COORD)
     # controller.press(keyboard.Key.esc)
     # controller.release(keyboard.Key.esc)
     # time.sleep(0.1)

@@ -34,7 +34,7 @@ class SwordAI:
     def _get_mask(self, fund, level):
         cost = level_cost.get(level, 0)
         can_enhance = fund >= cost
-        can_sell = level >= 5
+        can_sell = level >= MINIMUM_SELL_LEVEL
         
         return np.array([can_enhance, can_sell])
 
