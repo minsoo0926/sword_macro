@@ -58,7 +58,8 @@ def main(timesteps=TRAINING_TIMESTEPS):
             tensorboard_log=LOG_DIR,
             learning_rate=LEARNING_RATE,
             n_steps=N_STEPS,
-            batch_size=BATCH_SIZE
+            batch_size=BATCH_SIZE,
+            gamma=GAMMA
         )
 
     # checkpoint save callback

@@ -18,15 +18,15 @@ level_cost = {
     9: 10000,
     10: 20000,
     11: 30000,
-    12: 50000,
-    13: 100000,
-    14: 200000,
-    15: 500000,
-    16: 1000000,
-    17: 2000000,
-    18: 5000000,
-    19: 10000000,
-    20: 20000000,
+    12: 40000,
+    13: 50000,
+    14: 70000,
+    15: 100000,
+    16: 150000,
+    17: 200000,
+    18: 300000,
+    19: 400000,
+    20: 500000,
 }
 
 class SwordEnv(Env):
@@ -78,15 +78,11 @@ class SwordEnv(Env):
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
 
-        # random start level and fund for curriculum learning
-        # if self.np_random.random() < 2:
+        # random start level and fund for diverse start
         start_level = int(self.np_random.integers(0, 20))
         start_cost = level_cost[start_level]
-        start_fund = int(start_level * self.np_random.integers(5, 10) * 100000)
-        # else:
-        #     start_level = 0
-        #     start_fund = 100000
-        #     start_cost = level_cost[start_level]
+        start_fund = int((start_level+1) * self.np_random.integers(1, 5) * 100000)
+
         self.state = np.array([start_fund, start_level, start_cost, 0], dtype=np.int32)
         self.current_step = 0
         self.target_fund = start_fund * self.target_rate
@@ -117,7 +113,7 @@ class SwordEnv(Env):
             elif outcome == 'break':
                 self.state[1] = 0
                 # reward -= 10
-                reward -= self.avg_value(level) * self.reward_coeff
+                reward -= self.avg_value(level) * self.reward_coeff * 0.5  # penalty for breakage
             
             if outcome == 'remain':
                 self.state[3] += 1
@@ -130,10 +126,7 @@ class SwordEnv(Env):
         else:
             raise ValueError("Invalid Action")
 
-        if self.state[0] >= self.target_fund:
-            reward += 1000  # bonus for reaching target fund
-            done = True
-        elif self.state[0] < self.minimum_fund and self.state[1] == 0:
+        if self.state[0] < self.minimum_fund and self.state[1] == 0:
             reward -= 1000  # penalty for running out of fund
             done = True
 
