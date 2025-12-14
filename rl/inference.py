@@ -35,6 +35,8 @@ class SwordAI:
         cost = level_cost.get(level, 0)
         can_enhance = fund >= cost
         can_sell = level >= MINIMUM_SELL_LEVEL
+        if level >= 12:
+            can_enhance = False
         
         return np.array([can_enhance, can_sell])
 
