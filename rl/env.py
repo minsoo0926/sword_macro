@@ -72,6 +72,7 @@ class SwordEnv(Env):
         sell_price = self.get_sell_price(self.state[1])
         self.state[0] += sell_price
         self.state[1] = 0
+        self.state[3] = 0
         return sell_price
 
     def reset(self, seed=None, options=None):
@@ -79,9 +80,9 @@ class SwordEnv(Env):
 
         # random start level and fund for curriculum learning
         # if self.np_random.random() < 2:
-        start_level = int(self.np_random.integers(0, 12))
+        start_level = int(self.np_random.integers(0, 20))
         start_cost = level_cost[start_level]
-        start_fund = int(self.np_random.integers(0, 100) * 100000)
+        start_fund = int(start_level * self.np_random.integers(5, 10) * 100000)
         # else:
         #     start_level = 0
         #     start_fund = 100000
@@ -115,7 +116,8 @@ class SwordEnv(Env):
                 reward += (self.avg_value(level + 1) - self.avg_value(level)) * self.reward_coeff
             elif outcome == 'break':
                 self.state[1] = 0
-                reward -= 10
+                # reward -= 10
+                reward -= self.avg_value(level) * self.reward_coeff
             
             if outcome == 'remain':
                 self.state[3] += 1
@@ -125,7 +127,6 @@ class SwordEnv(Env):
         # Sell
         elif action == 1:
             sell_price = self.sell()
-            self.state[3] = 0
         else:
             raise ValueError("Invalid Action")
 

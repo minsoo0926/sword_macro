@@ -1,8 +1,4 @@
 import numpy as np
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from sb3_contrib import MaskablePPO
 from rl.env import SwordEnv, level_cost
@@ -66,7 +62,7 @@ class SwordAI:
         elif mask[1] and not mask[0]:
             return 1
         elif mask[0] and mask[1]:
-            if level < LEVEL_THRESHOLD or fail_count < FAIL_COUNT_THRESHOLD:
+            if level < LEVEL_THRESHOLD or fail_count < FAIL_COUNT_THRESHOLD and level < MAX_LEVEL_FOR_ENHANCE:
                 return 0  # 강화
             else:
                 return 1  # 판매
