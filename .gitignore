@@ -6,3 +6,4 @@ logs/*
 .*
 !models/sword_ppo_final.zip
 !models/vec_normalize.pkl
+saved/*

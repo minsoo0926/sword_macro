@@ -58,7 +58,7 @@ class SwordAI:
         
         return int(action[0])
     
-    def heuristic(self, fund: int, level: int):
+    def heuristic(self, fund: int, level: int, fail_count = 0):
         mask = self._get_mask(fund, level)
 
         if mask[0] and not mask[1]:
@@ -66,7 +66,7 @@ class SwordAI:
         elif mask[1] and not mask[0]:
             return 1
         elif mask[0] and mask[1]:
-            if level < LEVEL_THRESHOLD:
+            if level < LEVEL_THRESHOLD or fail_count < FAIL_COUNT_THRESHOLD:
                 return 0  # 강화
             else:
                 return 1  # 판매
