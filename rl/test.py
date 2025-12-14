@@ -7,6 +7,9 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 import matplotlib.pyplot as plt
 from rl.config import *
 from rl.env import SwordEnv 
+from rl.inference import SwordAI
+
+ai = SwordAI()
 
 def make_env(seed=None):
     def _init():
@@ -15,7 +18,7 @@ def make_env(seed=None):
         return env
     return _init
 
-def run_test():
+def run_test(mode = 'ai'):
     env = DummyVecEnv([make_env()])
     env = VecNormalize.load(STATS_PATH, env)
     env.training = False
@@ -36,11 +39,18 @@ def run_test():
     try:
         while True:
             action_masks = get_action_masks(env)
-            action, _states = model.predict(obs, action_masks=action_masks, deterministic=True)
+            if mode == 'ai':
+                action, _states = model.predict(obs, action_masks=action_masks, deterministic=True)
+            else:
+                action = ai.heuristic(
+                    fund=env.envs[0].env.state[0],
+                    level=env.envs[0].env.state[1],
+                    fail_count=env.envs[0].env.fail_count
+                )
+                action = [action if action != -1 else 0]
             obs, rewards, dones, info = env.step(action)
             budget_history.append(env.envs[0].env.state[0])
             level_history.append(env.envs[0].env.state[1])
-
             reward = rewards[0]
             reward_history.append(reward)
             total_reward += reward
@@ -90,4 +100,4 @@ def run_test():
         print("\nTest stopped by user.")
 
 if __name__ == "__main__":
-    run_test()
+    run_test('ai')

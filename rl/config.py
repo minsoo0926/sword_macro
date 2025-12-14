@@ -5,8 +5,8 @@ MODEL_PATH = "./models/sword_ppo_final.zip"
 STATS_PATH = "./models/vec_normalize.pkl"
 
 # Macro config
-LEVEL_THRESHOLD = 8
-FAIL_COUNT_THRESHOLD = 3
+LEVEL_THRESHOLD = 5
+FAIL_COUNT_THRESHOLD = 2
 CHAT_OUTPUT_COORD = (200, 490)  # x, y coordinates of the chat output box
 CHAT_INPUT_COORD = (200, 900)   # x, y coordinates of the chat input box
 ACTION_DELAY = 5

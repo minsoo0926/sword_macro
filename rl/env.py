@@ -35,6 +35,7 @@ class SwordEnv(Env):
         self.minimum_sell_level = MINIMUM_SELL_LEVEL
         self.reward_coeff = REWARD_COEFF
         self.level_data = level_summary_dict
+        self.fail_count = 0
 
     def action_masks(self):
         masks = [True, True]
@@ -109,10 +110,16 @@ class SwordEnv(Env):
                 self.state[1] = 0
                 # reward -= self.avg_value(level) * self.reward_coeff
                 reward -= 10
+            
+            if outcome == 'remain':
+                self.fail_count += 1
+            else:
+                self.fail_count = 0
 
         # Sell
         elif action == 1:
             sell_price = self.sell()
+            self.fail_count = 0
             # reward = sell_price * self.reward_coeff
         else:
             raise ValueError("Invalid Action")

@@ -31,11 +31,11 @@ class SwordAI:
         obs_tensor = self.vec_norm.normalize_obs(np.array([raw_obs]))
         return obs_tensor
 
-    def _get_mask(self, fund, level):
+    def _get_mask(self, fund, level, mode = 'ai'):
         cost = level_cost.get(level, 0)
         can_enhance = fund >= cost
         can_sell = level >= MINIMUM_SELL_LEVEL
-        if level >= 12:
+        if level >= 12 and mode == 'ai':
             can_enhance = False
         
         return np.array([can_enhance, can_sell])
@@ -59,7 +59,7 @@ class SwordAI:
         return int(action[0])
     
     def heuristic(self, fund: int, level: int, fail_count = 0):
-        mask = self._get_mask(fund, level)
+        mask = self._get_mask(fund, level, mode='heuristic')
 
         if mask[0] and not mask[1]:
             return 0
