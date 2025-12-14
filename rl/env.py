@@ -18,7 +18,15 @@ level_cost = {
     9: 10000,
     10: 20000,
     11: 30000,
-    12: 50000
+    12: 50000,
+    13: 100000,
+    14: 200000,
+    15: 500000,
+    16: 1000000,
+    17: 2000000,
+    18: 5000000,
+    19: 10000000,
+    20: 20000000,
 }
 
 class SwordEnv(Env):
@@ -45,6 +53,8 @@ class SwordEnv(Env):
             masks[0] = False  # cannot enhance
         if level < self.minimum_sell_level:
             masks[1] = False  # cannot sell
+        if level >= 20:
+            masks[0] = False  # cannot enhance beyond level 20
         return np.array(masks, dtype=bool)
 
     def get_sell_price(self, level):
@@ -79,7 +89,7 @@ class SwordEnv(Env):
         self.state = np.array([start_fund, start_level, start_cost, 0], dtype=np.int32)
         self.current_step = 0
         self.target_fund = start_fund * self.target_rate
-        self.minimum_fund = start_fund * 0.1
+        self.minimum_fund = start_fund / self.target_rate
         return self.state, {}
     
     def step(self, action):
@@ -103,12 +113,8 @@ class SwordEnv(Env):
             if outcome == 'success':
                 self.state[1] += 1
                 reward += (self.avg_value(level + 1) - self.avg_value(level)) * self.reward_coeff
-                if self.state[1] > 12:
-                    sell_price = self.sell()
-                    # reward += sell_price * self.reward_coeff
             elif outcome == 'break':
                 self.state[1] = 0
-                # reward -= self.avg_value(level) * self.reward_coeff
                 reward -= 10
             
             if outcome == 'remain':
@@ -120,7 +126,6 @@ class SwordEnv(Env):
         elif action == 1:
             sell_price = self.sell()
             self.state[3] = 0
-            # reward = sell_price * self.reward_coeff
         else:
             raise ValueError("Invalid Action")
 
@@ -143,7 +148,6 @@ class SwordEnv(Env):
         if not done and self.current_step >= self.max_steps:
             truncated = True
             sell_price = self.sell()
-            # reward += sell_price * self.reward_coeff
 
         return self.state, reward, done, truncated, {}
 
