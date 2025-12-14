@@ -52,6 +52,9 @@ class SwordEnv(Env):
         sell_price = max(0, int(self.np_random.normal(sell_avg, sell_std)))
         return sell_price
     
+    def avg_value(self, level):
+        return self.level_data[level]['AVG_sell']
+    
     def sell(self):
         if self.state[1] == 0:
             return 0
@@ -64,14 +67,14 @@ class SwordEnv(Env):
         super().reset(seed=seed)
 
         # random start level and fund for curriculum learning
-        if self.np_random.random() < 0.3:
-            start_level = int(self.np_random.integers(1, 10))
-            start_cost = level_cost[start_level]
-            start_fund = (start_level + 1) * 100000
-        else:
-            start_level = 0
-            start_fund = 100000
-            start_cost = level_cost[start_level]
+        # if self.np_random.random() < 2:
+        start_level = int(self.np_random.integers(0, 12))
+        start_cost = level_cost[start_level]
+        start_fund = (start_level + 1) * 100000
+        # else:
+        #     start_level = 0
+        #     start_fund = 100000
+        #     start_cost = level_cost[start_level]
         self.state = np.array([start_fund, start_level, start_cost], dtype=np.int32)
         self.current_step = 0
         self.target_fund = start_fund * self.target_rate
@@ -94,17 +97,22 @@ class SwordEnv(Env):
             break_prob = self.level_data[level]['파괴'] / 100
             outcome = self.np_random.choice(['success', 'remain', 'break'], p=[success_prob, remain_prob, break_prob])
 
+            reward -= cost * self.reward_coeff  # cost penalty
             if outcome == 'success':
                 self.state[1] += 1
+                reward += (self.avg_value(level + 1) - self.avg_value(level)) * self.reward_coeff
                 if self.state[1] > 12:
                     sell_price = self.sell()
-                    reward += sell_price * self.reward_coeff # * level  
+                    # reward += sell_price * self.reward_coeff
             elif outcome == 'break':
                 self.state[1] = 0
+                # reward -= self.avg_value(level) * self.reward_coeff
+                reward -= 10
+
         # Sell
         elif action == 1:
             sell_price = self.sell()
-            reward = sell_price * self.reward_coeff # * level
+            # reward = sell_price * self.reward_coeff
         else:
             raise ValueError("Invalid Action")
 
@@ -127,7 +135,7 @@ class SwordEnv(Env):
         if not done and self.current_step >= self.max_steps:
             truncated = True
             sell_price = self.sell()
-            reward += sell_price * self.reward_coeff # * level
+            # reward += sell_price * self.reward_coeff
 
         return self.state, reward, done, truncated, {}
 
