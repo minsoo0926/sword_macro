@@ -25,17 +25,16 @@ class SwordEnv(Env):
     def __init__(self) -> None:
         super().__init__()
         self.action_space = spaces.Discrete(2)
-        low_limits = np.array([0, 0, 0], dtype=np.int32) # fund, sword level, cost to enhance
-        high_limits = np.array([1e8, 20, 1e6], dtype=np.int32)
-        self.observation_space = spaces.Box(low=low_limits, high=high_limits, shape=(3,), dtype=np.int32)
+        low_limits = np.array([0, 0, 0, 0], dtype=np.int32) # fund, sword level, cost to enhance, fail count
+        high_limits = np.array([1e8, 20, 1e6, 50], dtype=np.int32)
+        self.observation_space = spaces.Box(low=low_limits, high=high_limits, shape=(4,), dtype=np.int32)
         self.max_steps = MAX_STEPS
         self.current_step = 0
         self.target_rate = TARGET_RATE
-        self.minimum_fund = MINIMUM_FUND
+        # self.minimum_fund = MINIMUM_FUND
         self.minimum_sell_level = MINIMUM_SELL_LEVEL
         self.reward_coeff = REWARD_COEFF
         self.level_data = level_summary_dict
-        self.fail_count = 0
 
     def action_masks(self):
         masks = [True, True]
@@ -72,14 +71,15 @@ class SwordEnv(Env):
         # if self.np_random.random() < 2:
         start_level = int(self.np_random.integers(0, 12))
         start_cost = level_cost[start_level]
-        start_fund = (start_level + 1) * 100000
+        start_fund = int(self.np_random.integers(0, 100) * 100000)
         # else:
         #     start_level = 0
         #     start_fund = 100000
         #     start_cost = level_cost[start_level]
-        self.state = np.array([start_fund, start_level, start_cost], dtype=np.int32)
+        self.state = np.array([start_fund, start_level, start_cost, 0], dtype=np.int32)
         self.current_step = 0
         self.target_fund = start_fund * self.target_rate
+        self.minimum_fund = start_fund * 0.1
         return self.state, {}
     
     def step(self, action):
@@ -112,14 +112,14 @@ class SwordEnv(Env):
                 reward -= 10
             
             if outcome == 'remain':
-                self.fail_count += 1
+                self.state[3] += 1
             else:
-                self.fail_count = 0
+                self.state[3] = 0
 
         # Sell
         elif action == 1:
             sell_price = self.sell()
-            self.fail_count = 0
+            self.state[3] = 0
             # reward = sell_price * self.reward_coeff
         else:
             raise ValueError("Invalid Action")

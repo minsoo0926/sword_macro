@@ -109,8 +109,8 @@ def act_inference(mode='ai'):
         print("Unable to parse fund or level from message.")
         return
     if mode == 'ai':
-        print(f"Current Fund: {fund}, Level: {level}")
-        inference_result = ai.predict(fund, level)
+        print(f"Current Fund: {fund}, Level: {level}, Fail Count: {fail_count}")
+        inference_result = ai.predict(fund, level, fail_count)
     else:
         print(f"Current Fund: {fund}, Level: {level}, Fail Count: {fail_count}")
         inference_result = ai.heuristic(fund, level, fail_count)

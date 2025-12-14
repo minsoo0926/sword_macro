@@ -9,7 +9,6 @@ from rl.config import *
 from rl.env import SwordEnv 
 from rl.inference import SwordAI
 
-ai = SwordAI()
 
 def make_env(seed=None):
     def _init():
@@ -35,6 +34,7 @@ def run_test(mode = 'ai'):
     budget_history = []
     level_history = []
     reward_history = []
+    fail_count_history = []
 
     try:
         while True:
@@ -42,15 +42,17 @@ def run_test(mode = 'ai'):
             if mode == 'ai':
                 action, _states = model.predict(obs, action_masks=action_masks, deterministic=True)
             else:
+                ai = SwordAI()
                 action = ai.heuristic(
                     fund=env.envs[0].env.state[0],
                     level=env.envs[0].env.state[1],
-                    fail_count=env.envs[0].env.fail_count
+                    fail_count=env.envs[0].env.state[3]
                 )
                 action = [action if action != -1 else 0]
             obs, rewards, dones, info = env.step(action)
             budget_history.append(env.envs[0].env.state[0])
             level_history.append(env.envs[0].env.state[1])
+            fail_count_history.append(env.envs[0].env.state[3])
             reward = rewards[0]
             reward_history.append(reward)
             total_reward += reward
@@ -71,25 +73,33 @@ def run_test(mode = 'ai'):
                 time.sleep(1.0) # Pause briefly to observe results
     # Plot budget and level history
         plt.figure(figsize=(12, 5))
-        plt.subplot(1, 3, 1)
+        plt.subplot(2, 2, 1)
         plt.plot(budget_history[:-1], label='Budget (G)')
         plt.xlabel('Steps')
         plt.ylabel('Budget (G)')
         plt.title('Budget Over Time')
         plt.legend()
 
-        plt.subplot(1, 3, 2)
+        plt.subplot(2, 2, 2)
         plt.plot(level_history, label='Sword Level (+)', color='orange')
         plt.xlabel('Steps')
         plt.ylabel('Sword Level (+)')
         plt.title('Sword Level Over Time')
         plt.legend()
 
-        plt.subplot(1, 3, 3)
+        plt.subplot(2, 2, 3)
         plt.plot(reward_history, label='Reward', color='green')
         plt.xlabel('Steps')
         plt.ylabel('Reward')
         plt.title('Reward Over Time')
+        plt.legend()
+
+        plt.subplot(2, 2, 4)
+        plt.plot(fail_count_history, label='Fail Count', color='red')
+        # plt.hist(fail_count_history, bins=20, color='purple', alpha=0.7)
+        plt.xlabel('Steps')
+        plt.ylabel('Fail Count')
+        plt.title('Fail Count Over Time')
         plt.legend()
 
         plt.tight_layout()

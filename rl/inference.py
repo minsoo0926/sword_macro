@@ -40,9 +40,9 @@ class SwordAI:
         
         return np.array([can_enhance, can_sell])
 
-    def predict(self, fund: int, level: int):
+    def predict(self, fund: int, level: int, fail_count = 0):
         cost = level_cost.get(level, 0)
-        raw_obs = np.array([fund, level, cost], dtype=np.int32)
+        raw_obs = np.array([fund, level, cost, fail_count], dtype=np.int32)
         action_masks = self._get_mask(fund, level)
 
         if not any(action_masks):
@@ -77,15 +77,15 @@ if __name__ == "__main__":
     ai = SwordAI(MODEL_PATH, STATS_PATH)
 
     test_cases = [
-        (500000, 0),   # 돈 많음, 0강 -> 당연히 강화(0)
-        (50, 5),      # 돈 없음, 5강 -> 팔아야 함(1)
-        (1000000, 5),  # 돈 많음, 5강 -> AI의 선택은? (강화/판매)
-        (10, 1),       # 돈 없음, 0강 -> 행동 불능(-1)
+        (500000, 0, 0),   # 돈 많음, 0강 -> 당연히 강화(0)
+        (50, 5, 0),      # 돈 없음, 5강 -> 팔아야 함(1)
+        (1000000, 5, 15),  # 돈 많음, 5강 -> AI의 선택은? (강화/판매)
+        (10, 1, 0),       # 돈 없음, 0강 -> 행동 불능(-1)
     ]
 
     print("\n=== AI Inference Test ===")
-    for fund, level in test_cases:
-        action = ai.predict(fund, level)
+    for fund, level, fail_count in test_cases:
+        action = ai.predict(fund, level, fail_count)
         
         act_str = "강화(Enhance)" if action == 0 else \
                   "판매(Sell)" if action == 1 else "행동 불가(Dead End)"
