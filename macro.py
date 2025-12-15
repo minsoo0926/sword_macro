@@ -14,6 +14,7 @@ ai = SwordAI()
 
 running_mode = None  # 'ai' or 'heuristic' or None
 fail_count = 0
+prev_text = ""
 
 def worker_loop():
     global running_mode
@@ -68,8 +69,8 @@ def _parse_message(message):
     else:
         fail_count = 0
 
-    print("="*30)
-    print(message)
+    # print("="*30)
+    # print(message)
     print("="*30)
     level_pattern = re.findall(r'\+(\d+)', message)
     level = int(level_pattern[-1]) if level_pattern \
@@ -95,14 +96,19 @@ def act_sell():
     
     controller.press('/')
     time.sleep(0.2)
-    controller.press('ㅍ')
+    controller.press('판')
     time.sleep(0.2)
     controller.press(keyboard.Key.enter)
     time.sleep(0.2)
     controller.press(keyboard.Key.enter)
 
 def act_inference(mode='ai'):
+    global prev_text
     text = _copy_message()
+    if prev_text == text:
+        # pass if new message is same as previous
+        return
+    prev_text = text
     fund, level = _parse_message(text)
     
     if fund is None or level is None:
