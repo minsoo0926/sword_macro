@@ -1,15 +1,24 @@
 ## Sword Growing RL/Macro
 
 ### Description
-- Data parsing tool for Sword Growing game in KakaoTalk Gamebot
+- end-to-end Data parsing / RL / macro tool for Sword Growing (검키우기) game in KakaoTalk Gamebot
 - RL environment to build agent
-- Macro support
+- Macro support (on Macbook yet)
 
 ### Quick start
-```
-pip install -r requirement.txt
-make macro
-```
+1. Set rl/config.py
+    - `CHAT_OUTPUT_COORD`: coordinate of chatbot output
+    - `CHAT_INPUT_COORD`: coordinate of your input box
+2. Run macro
+    ```
+    pip install -r requirement.txt
+    make macro
+    ```
+3. Functions
+    - `F1`, `F2` is hotkey for "강화", "판매" respectively
+    - `F3` starts loop based on AI inference
+    - `F4` starts loop based on rule-based strategy
+    - `F5` quits program
 
 ### RL support
 - Used PPO algorithm using SB3
@@ -19,12 +28,13 @@ make macro
 
 ### Data Parsing
 1. Export Kakaotalk chat log
-2. run `process_data.ipynb`
+2. put .csv file to `./data/*`
+3. run `process_data.ipynb`
 
 ### AI/Heuristic inference support
 - Trained RL agent is used for inference
 - Rule-based policy
-    - Sell when `LEVEL_THRESHOLD` achieved
+    - If `LEVEL_THRESHOLD` achieved, if fail count surpasses `FAIL_COUNT_THRESHOLD`, sell current sword
     - refer to `rl/config.py`
 
 ### Macro (Hotkey) Support
@@ -33,3 +43,8 @@ make macro
 - `F3`: AI inference (loop)
 - `F4`: Heuristic inference (loop)
 - `F5`: 매크로 종료
+
+### TODOS
+- Windows support
+- More training
+- More data collection (for better environment modeling)
