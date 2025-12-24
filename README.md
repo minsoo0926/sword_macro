@@ -6,12 +6,16 @@
 - Macro support (on Macbook yet)
 
 ### Quick start
+0. Preliminaries: `uv`
+1. Sync your python env
+    ```bash
+    make init
+    ```
 1. Set rl/config.py
     - `CHAT_OUTPUT_COORD`: coordinate of chatbot output
     - `CHAT_INPUT_COORD`: coordinate of your input box
 2. Run macro
-    ```
-    pip install -r requirement.txt
+    ```bash
     make macro
     ```
 3. Functions
