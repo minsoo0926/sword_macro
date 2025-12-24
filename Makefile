@@ -1,17 +1,20 @@
+init:
+	uv sync
+
 train:
-	python -m rl.train
+	uv run -m rl.train
 
 long-train:
-	python -m rl.train -t 5000000
+	uv run -m rl.train -t 5000000
 
 long-long-train:
-	python -m rl.train -t 10000000
+	uv run -m rl.train -t 10000000
 
 test:
-	python -m rl.test
+	uv run -m rl.test
 
 macro:
-	python -m macro
+	uv run -m macro
 
 tensorboard:
 	tensorboard --logdir ./logs/
